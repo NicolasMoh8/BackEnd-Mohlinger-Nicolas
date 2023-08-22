@@ -27,7 +27,7 @@ class ProductManager {
         return this.products;
     }
 
-    generarId(){
+    generarId() {
         const id = this.uniqueId;
         this.uniqueId++;
         return id;
@@ -43,7 +43,7 @@ class ProductManager {
         if (codeExist) {
             throw new Error("Producto repetido");
         }
-        const id=this.generarId();
+        const id = this.generarId();
 
         const newProd = {
             id,
@@ -71,26 +71,34 @@ class ProductManager {
 
     }
 
-    updateProduct(id, updated) {
+    async updateProduct(id, updated) {
         const productIndex = this.products.findIndex(product => product.id === id);
         if (productIndex !== -1) {
             this.products[productIndex] = {
                 ...this.products[productIndex],
                 ...updated
             };
-            this.guardarProducts();
-            console.log('Se actualizo el producto', this.products[productIndex])
+            try {
+                await this.guardarProducts();
+                console.log('Se actualizo el producto', this.products[productIndex])
+            } catch (error) {
+                console.error('Error al guardar los productos:', error);
+            }
         } else {
             console.log('No se encontro el producto');
         }
     }
 
-    deleteProduct(id) {
+    async deleteProduct(id) {
         const productIndex = this.products.findIndex(product => product.id === id);
         if (productIndex !== -1) {
             const deletedProduct = this.products.splice(productIndex, 1)[0];
-            this.guardarProducts();
-            console.log('Producto borrado: ', id);
+            try {
+                await this.guardarProducts();
+                console.log('Producto borrado: ', id);
+            } catch(error){
+                console.error('Error al guardar los productos:', error)
+            }
         } else {
             console.log('No se encontro el producto');
         }
@@ -107,7 +115,7 @@ productManager.addProducts(
     "Alimento balanceado para mascotas",
     "10000",
     "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-All-In-One-Criadores.png",
-    "1",
+    1,
     30
 );
 
@@ -116,7 +124,7 @@ productManager.addProducts(
     "Alimento balanceado para mascotas",
     "5000",
     "https://sieger.com.ar/wp-content/uploads/2022/09/adult-medium-and-large.png",
-    "2",
+    2,
     10,
 );
 
@@ -125,7 +133,7 @@ productManager.addProducts(
     "Alimento balanceado para mascotas",
     "8000",
     "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Puppy-Medium-Large.png",
-    "3",
+    3,
     20,
 );
 
