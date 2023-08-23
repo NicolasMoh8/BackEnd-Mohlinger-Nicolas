@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fs = require("fs").promises;
 
 class ProductManager {
     constructor(filePath) {
@@ -8,9 +8,9 @@ class ProductManager {
         this.cargaProducts();
     }
 
-    cargaProducts() {
+    async cargaProducts() {
         try {
-            const data = readFileSync(this.path, 'utf-8');
+            const data = await fs.readFile(this.path, 'utf-8');
             this.products = JSON.parse(data);
             this.uniqueId = this.products.length + 1;
         } catch (error) {
@@ -18,8 +18,13 @@ class ProductManager {
         }
     }
 
-    guardarProducts() {
-        fs.writeFileSync(this.path, JSON.stringify(this.products), 'utf-8');
+    async guardarProducts() {
+        try {
+            await fs.writeFile(this.path, JSON.stringify(this.products), 'utf-8');
+        } catch (error) {
+            console.error("Error al guardar los productos", error);
+        }
+
     }
 
     getProducts() {
@@ -59,13 +64,13 @@ class ProductManager {
         console.log("Producto agregado: ", newProd);
     }
 
-    getProductById(id) {
-        this.cargaProducts();
-        const product = this.products.find(codeExist => codeExist.id === id);
+    async getProductById(id) {
+        await this.cargaProducts();
+        const product = this.products.find(product => product.id.toString() === id);
         if (product) {
             return product
         } else {
-            console.log("No se encontro el producto")
+            console.log("No se encontro el producto1")
             return null;
         }
 
@@ -95,61 +100,71 @@ class ProductManager {
             const deletedProduct = this.products.splice(productIndex, 1)[0];
             try {
                 await this.guardarProducts();
-                console.log('Producto borrado: ', id);
-            } catch(error){
+                console.log('Producto borrado: ', deletedProduct);
+            } catch (error) {
                 console.error('Error al guardar los productos:', error)
             }
         } else {
-            console.log('No se encontro el producto');
+            console.log('No se encontro el producto3');
         }
     }
 
 }
 
-const productManager = new ProductManager('./index.json');
+(async () => {
+    try {
+        const productManager = new ProductManager('./index.json');
 
-console.log("Lista de productos al inicio", productManager.getProducts());
+        console.log("Lista de productos al inicio", productManager.getProducts());
 
-productManager.addProducts(
-    "Sieger Criadores por 20 kg",
-    "Alimento balanceado para mascotas",
-    "10000",
-    "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-All-In-One-Criadores.png",
-    1,
-    30
-);
+        await productManager.addProducts(
+            "Sieger Criadores por 20 kg",
+            "Alimento balanceado para mascotas",
+            "10000",
+            "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-All-In-One-Criadores.png",
+            '1',
+            30
+        );
 
-productManager.addProducts(
-    "Sieger Adult Medium & Large por 15 kg",
-    "Alimento balanceado para mascotas",
-    "5000",
-    "https://sieger.com.ar/wp-content/uploads/2022/09/adult-medium-and-large.png",
-    2,
-    10,
-);
+        await productManager.addProducts(
+            "Sieger Adult Medium & Large por 15 kg",
+            "Alimento balanceado para mascotas",
+            "5000",
+            "https://sieger.com.ar/wp-content/uploads/2022/09/adult-medium-and-large.png",
+            '2',
+            10,
+        );
 
-productManager.addProducts(
-    "Sieger Puppy Medium & Large por 15 kg",
-    "Alimento balanceado para mascotas",
-    "8000",
-    "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Puppy-Medium-Large.png",
-    3,
-    20,
-);
+        await productManager.addProducts(
+            "Sieger Puppy Medium & Large por 15 kg",
+            "Alimento balanceado para mascotas",
+            "8000",
+            "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Puppy-Medium-Large.png",
+            '3',
+            20,
+        );
 
-console.log("Lista de productos despues de agregar: ", productManager.products);
+        console.log("Lista de productos despues de agregar: ", productManager.products);
 
-const productById = productManager.getProductById(2);
-if (productById) {
-    console.log("Producto encontrado")
-} else {
-    console.log("Producto no encontrado");
-}
+        const productById = await productManager.getProductById('1');
+        if (productById) {
+            console.log("Producto encontrado",await productById)
+        } else {
+            console.log("Producto no encontrado");
+        }
 
-productManager.updateProduct(3, {
-    title: "Actualizado",
-    price: 100000
-});
+        await productManager.updateProduct(3, {
+            title: "Producto Actualizado",
+            price: 100000
+        })
 
-productManager.deleteProduct(1);
-console.log("Lista final", productManager.products);
+
+        console.log("Producto actualizado", productManager.products);
+        await productManager.deleteProduct(3);
+        console.log("Lista final:", await productManager.getProducts());
+
+
+    } catch (error) {
+        console.error(error)
+    }
+})();
