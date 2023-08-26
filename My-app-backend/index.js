@@ -5,17 +5,7 @@ class ProductManager {
         this.path = filePath;
         this.products = [];
         this.uniqueId = 1;
-        this.cargaProducts();
-    }
-
-    async cargaProducts() {
-        try {
-            const data = await fs.readFile(this.path, 'utf-8');
-            this.products = JSON.parse(data);
-            this.uniqueId = this.products.length + 1;
-        } catch (error) {
-            this.products = [];
-        }
+        this.getProducts();
     }
 
     async guardarProducts() {
@@ -27,9 +17,15 @@ class ProductManager {
 
     }
 
-    getProducts() {
-        this.cargaProducts();
-        return this.products;
+    async getProducts() {
+        try {
+            const data = await fs.readFile(this.path, 'utf-8');
+            this.products = JSON.parse(data);
+            this.uniqueId = this.products.length + 1;
+            return this.products;
+        } catch (error) {
+            this.products = [];
+        }
     }
 
     generarId() {
@@ -65,7 +61,7 @@ class ProductManager {
     }
 
     async getProductById(id) {
-        await this.cargaProducts();
+        await this.getProducts();
         const product = this.products.find(product => product.id.toString() === id);
         if (product) {
             return product
@@ -81,7 +77,8 @@ class ProductManager {
         if (productIndex !== -1) {
             this.products[productIndex] = {
                 ...this.products[productIndex],
-                ...updated
+                ...updated,
+                id: id
             };
             try {
                 await this.guardarProducts();
@@ -113,7 +110,7 @@ class ProductManager {
 
 (async () => {
     try {
-        const productManager = new ProductManager('./index.json');
+        const productManager = await new ProductManager('./index.json');
 
         console.log("Lista de productos al inicio", productManager.getProducts());
 
@@ -148,7 +145,7 @@ class ProductManager {
 
         const productById = await productManager.getProductById('1');
         if (productById) {
-            console.log("Producto encontrado",await productById)
+            console.log("Producto encontrado", await productById)
         } else {
             console.log("Producto no encontrado");
         }
