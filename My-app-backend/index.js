@@ -1,4 +1,4 @@
-const fs = require("fs").promises;
+import fs from "fs/promises"
 
 class ProductManager {
     constructor(filePath) {
@@ -124,7 +124,7 @@ class ProductManager {
         );
 
         await productManager.addProducts(
-            "Sieger Adult Medium & Large por 15 kg",
+            "Sieger Adult Medium & Large Breed por 15 kg",
             "Alimento balanceado para mascotas",
             "5000",
             "https://sieger.com.ar/wp-content/uploads/2022/09/adult-medium-and-large.png",
@@ -133,13 +133,14 @@ class ProductManager {
         );
 
         await productManager.addProducts(
-            "Sieger Puppy Medium & Large por 15 kg",
+            "Sieger Puppy Medium & Large Breed por 15 kg",
             "Alimento balanceado para mascotas",
             "8000",
             "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Puppy-Medium-Large.png",
             '3',
             20,
         );
+        
 
         console.log("Lista de productos despues de agregar: ", productManager.products);
 
@@ -165,3 +166,4 @@ class ProductManager {
         console.error(error)
     }
 })();
+
