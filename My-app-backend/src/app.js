@@ -1,24 +1,183 @@
 import express from 'express';
-
+import fs from "fs/promises"
 
 const app = express();
-const products = [
-    { id: '1', nombre: "Sieger Criadores por 20 kg", Tipo: "Alimento balanceado para mascotas", Precio: "10000", Imagen: "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-All-In-One-Criadores.png", stock: 30 },
-    { id: '2', nombre: "Sieger Adult Medium & Large Breed por 15 kg", Tipo: "Alimento balanceado para mascotas", Precio: "5000", Imagen: "https://sieger.com.ar/wp-content/uploads/2022/09/adult-medium-and-large.png", stock: 10 },
-    { id: '3', nombre: "Sieger Puppy Medium & Large Breed por 15 kg", Tipo: "Alimento balanceado para mascotas", Precio: "8000", Imagen: "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Puppy-Medium-Large.png", stock: 20 },
-    { id: '4', nombre: "Sieger Katze Adult por 7,5 kg", Tipo: "Alimento balanceado para mascotas", Precio: "4500", Imagen: "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Katze-Adult-1.png", stock: 5 },
-    { id: '5', nombre: "Sieger Katze Urinary por 7,5 kg", Tipo: "Alimento balanceado para mascotas", Precio: "5000", Imagen: "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Katze-Urinary-1.png", stock: 8 },
-    { id: '6', nombre: "Sieger Katze Kitten por 7,5 kg", Tipo: "Alimento balanceado para mascotas", Precio: "5000", Imagen: "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Katze-Kitten-1.png", stock: 15 },
-    { id: '7', nombre: "Sieger Senior Medium & Large Breed por 15 kg", Tipo: "Alimento balanceado para mascotas", Precio: "7500", Imagen: "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Senior-Medium-Large.png", stock: 4 },
-    { id: '8', nombre: "Sieger Senior Mini & Small Breed por 15 kg", Tipo: "Alimento balanceado para mascotas", Precio: "8000", Imagen: "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Senior-Mini-Small.png", stock: 10 },
-    { id: '9', nombre: "Sieger Dermaprotect por 12 kg", Tipo: "Alimento balanceado para mascotas", Precio: "1000", Imagen: "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Dermaprotect.png", stock: 1 },
-    { id: '10', nombre: "Sieger Reduced Calorie por 12 kg", Tipo: "Alimento balanceado para mascotas", Precio: "9000", Imagen: "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Reduced-Calorie.png", stock: 17 },
-]
+const PORT = 8080;
+
+class ProductManager {
+    constructor(filePath) {
+        this.path = filePath;
+        this.products = [];
+        this.uniqueId = 1;
+        this.getProducts();
+    }
+
+    async guardarProducts() {
+        try {
+            await fs.writeFile(this.path, JSON.stringify(this.products), 'utf-8');
+        } catch (error) {
+            console.error("Error al guardar los productos", error);
+        }
+
+    }
+
+    async getProducts() {
+        try {
+            const data = await fs.readFile(this.path, 'utf-8');
+            this.products = JSON.parse(data);
+            this.uniqueId = this.products.length + 1;
+            return this.products;
+        } catch (error) {
+            this.products = [];
+        }
+    }
+
+    generarId() {
+        const id = this.uniqueId;
+        this.uniqueId++;
+        return id;
+    }
+
+    addProducts(title, description, price, thumbnail, code, stock) {
+        const fields = [title, description, price, thumbnail, code, stock];
+        if (fields.some(field => field === undefined || field === null)) {
+            throw new Error("Todos los campos son obligatorios");
+        }
+
+        const codeExist = this.products.some(product => product.code === code);
+        if (codeExist) {
+            throw new Error("Producto repetido");
+        }
+        const id = this.generarId();
+
+        const newProd = {
+            id,
+            title,
+            description,
+            price,
+            thumbnail,
+            code,
+            stock
+        }
+        this.products.push(newProd);
+        this.guardarProducts();
+        console.log("Producto agregado: ", newProd);
+    }
+
+    async getProductById(id) {
+        await this.getProducts();
+        const product = this.products.find(product => product.id.toString() === id);
+        if (product) {
+            return product
+        } else {
+            console.log("No se encontro el producto1")
+            return null;
+        }
+
+    }
+
+    async updateProduct(id, updated) {
+        const productIndex = this.products.findIndex(product => product.id === id);
+        if (productIndex !== -1) {
+            this.products[productIndex] = {
+                ...this.products[productIndex],
+                ...updated,
+                id: id
+            };
+            try {
+                await this.guardarProducts();
+                console.log('Se actualizo el producto', this.products[productIndex])
+            } catch (error) {
+                console.error('Error al guardar los productos:', error);
+            }
+        } else {
+            console.log('No se encontro el producto');
+        }
+    }
+
+    async deleteProduct(id) {
+        const productIndex = this.products.findIndex(product => product.id === id);
+        if (productIndex !== -1) {
+            const deletedProduct = this.products.splice(productIndex, 1)[0];
+            try {
+                await this.guardarProducts();
+                console.log('Producto borrado: ', deletedProduct);
+            } catch (error) {
+                console.error('Error al guardar los productos:', error)
+            }
+        } else {
+            console.log('No se encontro el producto3');
+        }
+    }
+
+}
+
+(async () => {
+    try {
+        const productManager = await new ProductManager('./index.json');
+
+        console.log("Lista de productos al inicio", productManager.getProducts());
+
+        await productManager.addProducts(
+            "Sieger Criadores por 20 kg",
+            "Alimento balanceado para mascotas",
+            "10000",
+            "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-All-In-One-Criadores.png",
+            '1',
+            30
+        );
+
+        await productManager.addProducts(
+            "Sieger Adult Medium & Large Breed por 15 kg",
+            "Alimento balanceado para mascotas",
+            "5000",
+            "https://sieger.com.ar/wp-content/uploads/2022/09/adult-medium-and-large.png",
+            '2',
+            10,
+        );
+
+        await productManager.addProducts(
+            "Sieger Puppy Medium & Large Breed por 15 kg",
+            "Alimento balanceado para mascotas",
+            "8000",
+            "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Puppy-Medium-Large.png",
+            '3',
+            20,
+        );
 
 
+        console.log("Lista de productos despues de agregar: ", productManager.products);
+
+        const productById = await productManager.getProductById('1');
+        if (productById) {
+            console.log("Producto encontrado", await productById)
+        } else {
+            console.log("Producto no encontrado");
+        }
+
+        await productManager.updateProduct(3, {
+            title: "Producto Actualizado",
+            price: 100000
+        })
+
+
+        console.log("Producto actualizado", productManager.products);
+        await productManager.deleteProduct(3);
+        console.log("Lista final:", await productManager.getProducts());
+
+        app.listen(PORT, () => {
+            console.log('Servidor corriendo en el puerto 8080')
+        });
+    } catch (error) {
+        console.error(error)
+    }
+})();
+
+const productManager = new ProductManager('./products.json')
 app.get('/products', async (req, res) => {
     try {
         const limit = parseInt(req.query.limit);
+        const products = await productManager.getProducts();
         if (isNaN(limit)) {
             res.json(products);
         } else {
@@ -30,9 +189,9 @@ app.get('/products', async (req, res) => {
     }
 });
 
-app.get('/products/:id', (req, res) => {
+app.get('/products/:id', async (req, res) => {
     const productId = req.params.id;
-    const product = products.find(prod => prod.id === productId);
+    const product = await productManager.getProductById(productId);
     if (product) {
         res.json(product);
     } else {
@@ -41,10 +200,7 @@ app.get('/products/:id', (req, res) => {
 
 });
 
-const PORT = 8080;
-app.listen(PORT, () => {
-    console.log('Servidor corriendo en el puerto 8080')
-});
+
 
 
 
