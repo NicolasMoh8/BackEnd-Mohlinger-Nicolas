@@ -1,8 +1,15 @@
 import express from 'express';
-import fs from "fs/promises"
+import fs from "fs/promises";
+import { productRouter } from './routes/product.js';
+import { cartsRouter } from './routes/carts.js';
 
 const app = express();
 const PORT = 8080;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/api/products', productRouter);
+app.use('/api/carts', cartsRouter);
 
 class ProductManager {
     constructor(filePath) {
@@ -112,69 +119,10 @@ class ProductManager {
 
 }
 
-(async () => {
-    try {
-        const productManager = await new ProductManager('./index.json');
+const productManager = new ProductManager('src/products.json')
+const productsRouter = express.Router();
 
-        console.log("Lista de productos al inicio", productManager.getProducts());
-
-        await productManager.addProducts(
-            "Sieger Criadores por 20 kg",
-            "Alimento balanceado para mascotas",
-            "10000",
-            "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-All-In-One-Criadores.png",
-            '1',
-            30
-        );
-
-        await productManager.addProducts(
-            "Sieger Adult Medium & Large Breed por 15 kg",
-            "Alimento balanceado para mascotas",
-            "5000",
-            "https://sieger.com.ar/wp-content/uploads/2022/09/adult-medium-and-large.png",
-            '2',
-            10,
-        );
-
-        await productManager.addProducts(
-            "Sieger Puppy Medium & Large Breed por 15 kg",
-            "Alimento balanceado para mascotas",
-            "8000",
-            "https://sieger.com.ar/wp-content/uploads/2022/09/Sieger-Puppy-Medium-Large.png",
-            '3',
-            20,
-        );
-
-
-        console.log("Lista de productos despues de agregar: ", productManager.products);
-
-        const productById = await productManager.getProductById('1');
-        if (productById) {
-            console.log("Producto encontrado", await productById)
-        } else {
-            console.log("Producto no encontrado");
-        }
-
-        await productManager.updateProduct(3, {
-            title: "Producto Actualizado",
-            price: 100000
-        })
-
-
-        console.log("Producto actualizado", productManager.products);
-        await productManager.deleteProduct(3);
-        console.log("Lista final:", await productManager.getProducts());
-
-        app.listen(PORT, () => {
-            console.log('Servidor corriendo en el puerto 8080')
-        });
-    } catch (error) {
-        console.error(error)
-    }
-})();
-
-const productManager = new ProductManager('./products.json')
-app.get('/products', async (req, res) => {
+productsRouter.get('/', async (req, res) => {
     try {
         const limit = parseInt(req.query.limit);
         const products = await productManager.getProducts();
@@ -189,9 +137,9 @@ app.get('/products', async (req, res) => {
     }
 });
 
-app.get('/products/:id', async (req, res) => {
-    const productId = req.params.id;
-    const product = await productManager.getProductById(productId);
+productsRouter.get('/:id', async (req, res) => {
+    const id = req.params.id;
+    const product = await productManager.getProductById(id);
     if (product) {
         res.json(product);
     } else {
@@ -200,7 +148,37 @@ app.get('/products/:id', async (req, res) => {
 
 });
 
+productsRouter.post('/', (req, res) => {
+    const { title, description, price, thumbnail, code, stock } = req.body;
+    productManager.addProducts(title, description, price, thumbnail, code, stock);
+    res.status(200).json({ message: 'Producto creado' });
+});
 
+productsRouter.put('/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    const updated = req.body;
+    const updatedProduct = await productManager.updateProduct(id, updated);
+
+    if (updatedProduct) {
+        res.json({ message: 'Producto actualizado' })
+    } else {
+        res.status(404).json({ error: 'Producto no encontrado' })
+    }
+});
+
+productsRouter.delete('/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    const deleted = await productManager.deleteProduct(id);
+    if (deleted) {
+        res.json({ message: 'Producto eliminado' });
+    } else {
+        res.status(404).json({ error: 'Producto no encontrado' })
+    }
+});
+
+app.listen(PORT, () => {
+    console.log('Servidor corriendo en el puerto 8080')
+});
 
 
 
