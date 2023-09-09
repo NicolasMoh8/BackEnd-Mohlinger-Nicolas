@@ -45,7 +45,7 @@ class ProductManager {
         return id;
     }
 
-    addProducts(title, description, price, thumbnail, code, stock) {
+    async addProducts(title, description, price, thumbnail, code, stock) {
         const fields = [title, description, price, thumbnail, code, stock];
         if (fields.some(field => field === undefined || field === null)) {
             throw new Error("Todos los campos son obligatorios");
@@ -67,7 +67,7 @@ class ProductManager {
             stock
         }
         this.products.push(newProd);
-        this.guardarProducts();
+        await this.guardarProducts();
         console.log("Producto agregado: ", newProd);
     }
 
@@ -148,10 +148,14 @@ productsRouter.get('/:id', async (req, res) => {
 
 });
 
-productsRouter.post('/', (req, res) => {
-    const { title, description, price, thumbnail, code, stock } = req.body;
-    productManager.addProducts(title, description, price, thumbnail, code, stock);
-    res.status(200).json({ message: 'Producto creado' });
+productsRouter.post('/', async (req, res) => {
+    try {
+        const { title, description, price, thumbnail, code, stock } = req.body;
+        await productManager.addProducts(title, description, price, thumbnail, code, stock);
+        res.status(200).json({ message: 'Producto creado' });
+    } catch{
+        req.status(500).json({error:'Error al crear el producto'})
+    }
 });
 
 productsRouter.put('/:id', async (req, res) => {

@@ -26,7 +26,7 @@ async function saveCarts(carts) {
 cartsRouter.get('/:cid', async (req, res) => {
 
     try {
-        const cartId = req.params.cid;
+        const cartId = parseInt(req.params.cid);
         const carts = await loadCarts();
         const cart = carts.find(cart => cart.id === cartId);
         if (!cart) {
@@ -37,6 +37,8 @@ cartsRouter.get('/:cid', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener el carrito' })
     }
 });
+
+
 
 cartsRouter.post('/', async (req, res) => {
     try {
@@ -54,7 +56,39 @@ cartsRouter.post('/', async (req, res) => {
     }
 });
 
+cartsRouter.post('/:cid/product/:pid', async (req, res) => {
+    try {
+        const carts = loadCarts();
+        const cartId = parseInt(req.params.cid);
+        const productId = parseInt(req.params.pid);
+        const quantity = req.body.quantity || 1;
+
+        const cart = carts.find(cart => cart.id === cartId);
+        if (!cart) {
+            return res.status(404).json({ error: 'No se ha encontrado el carrito' });
+        }
+
+        const agregarProd = {
+            productId, quantity
+        };
+
+        const prodExist = cart.products.find(item => item.productId === productId);
+        if (prodExist) {
+            prodExist.quantity += quantity;
+        } else {
+            cart.products.push(agregarProd);
+        }
+        await saveCarts(carts);
+
+        res.status(201).json({ message: 'Producto agregado al carrito' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al agregar producto al carrito' });
+    }
+});
+
 export { cartsRouter as cartsRouter };
+
+
 
 
 

@@ -42,7 +42,7 @@ productRouter.get('/', async (req, res) => {
 });
 
 productRouter.get('/:pid', async (req, res) => {
-    const id = req.params.pid;
+    const id = parseInt(req.params.pid);
     const products = await loadProducts();
     const product = products.find(product => product.id === id);
     if (product) {
@@ -53,38 +53,60 @@ productRouter.get('/:pid', async (req, res) => {
 
 });
 
+productRouter.post('/', async (req, res) => {
+    try {
+        const { title, description, price, thumbnail, code, stock } = req.body;
+        const products = await loadProducts();
+        if (!title || !description || !price || !thumbnail || !code || !stock) {
+            return res.status(404).json({ error: 'Producto ya existente' })
+        };
+        if (products.some(product => product.code === code)) {
+            return res.status(404).json({ error: 'Producto ya existente con el mismo codigo' })
+        }
+
+        const idNuevo = products.length > 0 ? Math.max(...products.map(product => product.id)) + 1 : 1;
+        const productNuevo = { id: idNuevo, title, description, price, thumbnail, code, stock };
+
+        products.push(productNuevo);
+        await saveProducts(products);
+
+
+        res.status(201).json({ message: 'Producto creado' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al crear el producto' });
+    }
+});
+
+
 productRouter.put('/:pid', async (req, res) => {
     const id = parseInt(req.params.pid);
     const updated = req.body;
     const products = await loadProducts();
     const productIndex = products.findIndex(product => product.id === id);
 
-    if (productIndex!==-1){
-        products[productIndex]={...products[productIndex],...updated}    
+    if (productIndex !== -1) {
+        products[productIndex] = { ...products[productIndex], ...updated }
         saveProducts(products);
-        res.json({message:'Se actualizo el producto'})
-    }else{
-        res.status(404).json({error:'Producto no encontrado'});
+        res.json({ message: 'Se actualizo el producto' })
+    } else {
+        res.status(404).json({ error: 'Producto no encontrado' });
     }
 });
 
-productRouter.delete('/:pid',async(req,res)=>{
+productRouter.delete('/:pid', async (req, res) => {
     const id = parseInt(req.params.pid);
     const products = await loadProducts();
-    const productIndex = products.findIndex(product=>product.id===id);
+    const productIndex = products.findIndex(product => product.id === id);
 
-    if(productIndex !== -1){
-        products.splice(productIndex,1);
+    if (productIndex !== -1) {
+        products.splice(productIndex, 1);
         saveProducts(products);
-        res.json({message:'Producto eliminado'});
-    }else{
-        res.status(404).json({error:'Producto no encontrado'});
+        res.json({ message: 'Producto eliminado' });
+    } else {
+        res.status(404).json({ error: 'Producto no encontrado' });
     }
 
 })
-
-
-
 
 
 export { productRouter as productRouter };
