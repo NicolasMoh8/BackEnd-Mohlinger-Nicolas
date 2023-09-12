@@ -34,8 +34,8 @@ class ProductManager {
         return id;
     }
 
-    async addProducts(title, description, price, thumbnail, code, stock) {
-        const fields = [title, description, price, thumbnail, code, stock];
+    async addProducts(title, description, price, code, stock, category, thumbnail=[], status=true) {
+        const fields = [title, description, price, code, stock, category];
         if (fields.some(field => field === undefined || field === null)) {
             throw new Error("Todos los campos son obligatorios");
         }
@@ -47,13 +47,15 @@ class ProductManager {
         const id = this.generarId();
 
         const newProd = {
-            id,
+            id: id.toString(),
             title,
             description,
             price,
-            thumbnail,
             code,
-            stock
+            stock,
+            category,
+            thumbnail,
+            status,
         }
         this.products.push(newProd);
         await this.guardarProducts();
