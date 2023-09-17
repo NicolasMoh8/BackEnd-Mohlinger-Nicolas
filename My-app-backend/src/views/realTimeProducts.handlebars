@@ -11,9 +11,38 @@
     <h1>Lista de productos en Real Time</h1>
     <ul>
         {{#each products}}
-        <li>{{this.title}} - {{this.price}}</li>
+        <li>
+            <h3>{{title}}</h3>
+            <h4>{{description}}</h4>
+            <img src="{{thumbnail}}">
+            <h4>Precio unitario: ${{price}}</h4>
+            <h4>Stock disponible: {{stock}}</h4>
+        </li>
         {{/each}}
     </ul>
+
+
+    <script>
+        const socket = io();
+
+        socket.on('products', function (products) {
+            const productForm = getElementById('product-form');
+            productForm.innerHTML = '';
+
+            products.forEach(function (product) {
+                const items = document.createElement('li');
+                items.innerHTML = `
+                    <h3>${product.title}</h3>
+                    <h4>${product.description}</h4>
+                    <img src="${product.thumbnail}">
+                    <h4>Precio unitario: $${product.price}</h4>
+                    <h4>Stock disponible: ${product.stock}</h4>
+                `;
+                productForm.appendChild(items);
+            });
+        });
+
+    </script>
 </body>
 
 </html>

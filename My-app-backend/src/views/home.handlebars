@@ -7,7 +7,13 @@
     <title>Lista de productos</title>
     <ul>
         {{#each products}}
-        <li>{{this.title}} - {{this.price}}</li>
+        <li>
+            <h3>{{title}}</h3>
+            <h4>{{description}}</h4>
+            <img src="{{thumbnail}}">
+            <h4>Precio unitario: ${{price}}</h4>
+            <h4>Stock disponible: {{stock}}</h4>
+        </li>
         {{/each}}
     </ul>
 </head>

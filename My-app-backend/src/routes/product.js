@@ -1,8 +1,28 @@
 import express from 'express';
 import ProductManager from '../models/ProductManager.js';
+import io from '../app.js';
+
 
 const productRouter = express.Router();
 const productManager = new ProductManager('src/data/products.json');
+
+productRouter.get('/home', async (req, res) => {
+    try {
+        const products = await productManager.getProducts();
+        res.render('home', { products });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener productos' });
+    }
+});
+
+productRouter.get('/realTimeProducts', async (req, res) => {
+    try {
+        const products = await productManager.getProducts();
+        res.render('realTimeProducts', { products });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener productos' });
+    }
+});
 
 productRouter.get('/', async (req, res) => {
 
@@ -58,6 +78,7 @@ productRouter.put('/:pid', async (req, res) => {
 
     try {
         await productManager.updateProduct(id, updated);
+        io.emit('updated', updated);
         res.json({ message: 'Producto actualizado' });
     } catch (error) {
         res.status(500).json({ error: 'Error al actualizar el producto' });
@@ -70,6 +91,7 @@ productRouter.delete('/:pid', async (req, res) => {
 
     try {
         await productManager.deleteProduct(id);
+        io.emit('id', id);
         res.json({ message: 'Producto eliminado' });
     } catch (error) {
         res.status(500).json({ error: 'Error al eliminar el producto' });
