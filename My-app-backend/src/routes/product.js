@@ -6,6 +6,15 @@ import io from '../app.js';
 const productRouter = express.Router();
 const productManager = new ProductManager('src/data/products.json');
 
+productRouter.get('/', async(req,res)=>{
+    try{
+        const products = await productManager.getProducts();
+        res.render('home',{products});
+    }catch(error){
+        res.status(500).json({error:'Error al obtener productos'})
+    }
+});
+
 productRouter.get('/home', async (req, res) => {
     try {
         const products = await productManager.getProducts();

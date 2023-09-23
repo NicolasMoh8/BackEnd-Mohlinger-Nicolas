@@ -1,6 +1,6 @@
 import express from 'express';
 import __dirname from './utils.js';
-import handlebars from 'express-handlebars';
+import { engine } from 'express-handlebars';
 import { Server } from 'socket.io';
 import ProductManager from './models/ProductManager.js';
 import productRouter from './routes/product.js';
@@ -12,12 +12,13 @@ const io = new Server(httpServer);
 
 const productManager = new ProductManager('src/data/products.json');
 
-app.engine('handlebars', handlebars.engine());
+app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
-app.set('views', __dirname + '/public');
+app.set('views', '/views');
 app.use(express.static(__dirname + '/public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use('/api/products', productRouter);
 app.use('/api/carts', cartsRouter);
 
@@ -49,5 +50,7 @@ io.on('connection', (socket) => {
 });
 
 export default app;
-export{io};
+export { io };
+
+
 
