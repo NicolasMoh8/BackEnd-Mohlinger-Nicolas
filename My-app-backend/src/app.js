@@ -5,6 +5,7 @@ import { Server } from 'socket.io';
 import ProductManager from './models/ProductManager.js';
 import productRouter from './routes/product.js';
 import cartsRouter from './routes/carts.js';
+import path from 'path';
 
 const app = express();
 const httpServer = app.listen(8080, () => console.log("Escuchando el puerto 8080"));
@@ -14,7 +15,7 @@ const productManager = new ProductManager('src/data/products.json');
 
 app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
-app.set('views', '/views');
+app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(__dirname + '/public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
