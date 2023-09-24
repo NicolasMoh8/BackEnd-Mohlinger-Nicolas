@@ -6,12 +6,12 @@ import io from '../app.js';
 const productRouter = express.Router();
 const productManager = new ProductManager('src/data/products.json');
 
-productRouter.get('/', async(req,res)=>{
-    try{
+productRouter.get('/', async (req, res) => {
+    try {
         const products = await productManager.getProducts();
-        res.render('home',{products});
-    }catch(error){
-        res.status(500).json({error:'Error al obtener productos'})
+        res.render('home', { products });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener productos' })
     }
 });
 
@@ -73,6 +73,11 @@ productRouter.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' })
         }
         const idNuevo = await productManager.addProducts(title, description, price, thumbnail, code, stock);
+
+        const updatedProducts = await productManager.getProducts();
+
+        io.emit('createProduct', updatedProducts);
+
         res.status(201).json({ message: 'Producto creado', productId: idNuevo });
 
     } catch (error) {
@@ -87,7 +92,7 @@ productRouter.put('/:pid', async (req, res) => {
 
     try {
         await productManager.updateProduct(id, updated);
-        io.emit('updated', updated);
+        //io.emit('updated', updated);
         res.json({ message: 'Producto actualizado' });
     } catch (error) {
         res.status(500).json({ error: 'Error al actualizar el producto' });
@@ -100,7 +105,11 @@ productRouter.delete('/:pid', async (req, res) => {
 
     try {
         await productManager.deleteProduct(id);
-        io.emit('id', id);
+
+        const updatedProducts = await productManager.getProducts();
+
+        io.emit('deleteProduct', updatedProducts);
+
         res.json({ message: 'Producto eliminado' });
     } catch (error) {
         res.status(500).json({ error: 'Error al eliminar el producto' });

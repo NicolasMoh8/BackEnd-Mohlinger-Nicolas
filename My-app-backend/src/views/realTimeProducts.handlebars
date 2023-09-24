@@ -4,47 +4,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles.css">
     <title>Lista de productos en realTime</title>
 </head>
 
 <body>
+
     <h1>Lista de productos en Real Time</h1>
-    <ul>
+    <ul class="product-list">
         {{#each products}}
-        <li>
+        <li class="product-item">
             <h3>{{title}}</h3>
             <h4>{{description}}</h4>
-            <img src="{{thumbnail}}">
+            <img class="product-image" src="{{thumbnail}}">
             <h4>Precio unitario: ${{price}}</h4>
             <h4>Stock disponible: {{stock}}</h4>
         </li>
         {{/each}}
     </ul>
 
+    
     <script src="/socket.io/socket.io.js"></script>
     <script>
+
         const socket = io();
 
-        socket.on('products', function (products) {
-            const productForm = getElementById('product-form');
+        socket.on('createProduct', function (products) {
+            const productForm = document.getElementById('product-form');
             productForm.innerHTML = '';
 
             products.forEach(function (product) {
                 const items = document.createElement('li');
+                items.classList.add('product-item')
                 items.innerHTML = `
                     <h3>${product.title}</h3>
                     <h4>${product.description}</h4>
-                    <img src="${product.thumbnail}">
+                    <img class="product-image" src="${product.thumbnail}">
                     <h4>Precio unitario: $${product.price}</h4>
                     <h4>Stock disponible: ${product.stock}</h4>
                 `;
                 productForm.appendChild(items);
             });
         });
+        socket.on('deleteProduct', function (products) {
+            const productForm = document.getElementById('product-form');
+            productForm.innerHTML = '';
 
+            products.forEach(function (product) {
+                const item = document.createElement('li');
+                item.classList.add('product-item');
+                item.innerHTML = `
+                    <h3>${product.title}</h3>
+                    <h4>${product.description}</h4>
+                    <img class="product-image" src="${product.thumbnail}">
+                    <h4>Precio unitario: $${product.price}</h4>
+                    <h4>Stock disponible: ${product.stock}</h4>
+                `;
+                productForm.appendChild(item);
+            });
+        });
     </script>
 </body>
 
 </html>
-
 
