@@ -1,6 +1,6 @@
 import express from 'express';
 import ProductManager from '../models/ProductManager.js';
-import io from '../app.js';
+import { io } from '../app.js';
 
 
 const productRouter = express.Router();
@@ -100,11 +100,11 @@ productRouter.put('/:pid', async (req, res) => {
 });
 
 
-productRouter.delete('/:pid', async (req, res) => {
-    const id = parseInt(req.params.pid);
+productRouter.delete('/:id', async (req, res) => {
+    const productId = parseInt(req.params.id);
 
     try {
-        await productManager.deleteProduct(id);
+        await productManager.deleteProduct(productId);
 
         const updatedProducts = await productManager.getProducts();
 

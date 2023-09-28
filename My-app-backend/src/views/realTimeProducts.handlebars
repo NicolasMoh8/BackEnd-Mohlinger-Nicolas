@@ -11,7 +11,7 @@
 <body>
 
     <h1>Lista de productos en Real Time</h1>
-    <ul class="product-list">
+    <ul class="product-list" id="product-list">
         {{#each products}}
         <li class="product-item">
             <h3>{{title}}</h3>
@@ -29,12 +29,12 @@
 
         const socket = io();
 
-        socket.on('createProduct', function (products) {
-            const productForm = document.getElementById('product-form');
+        socket.on('deleteProduct', function (products) {
+            const productForm = document.getElementById('product-list');
             productForm.innerHTML = '';
 
             products.forEach(function (product) {
-                const items = document.createElement('li');
+                const item = document.createElement('li');
                 items.classList.add('product-item')
                 items.innerHTML = `
                     <h3>${product.title}</h3>
@@ -43,7 +43,7 @@
                     <h4>Precio unitario: $${product.price}</h4>
                     <h4>Stock disponible: ${product.stock}</h4>
                 `;
-                productForm.appendChild(items);
+                productForm.appendChild(item);
             });
         });
         socket.on('deleteProduct', function (products) {
