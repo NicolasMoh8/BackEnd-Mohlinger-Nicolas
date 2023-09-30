@@ -6,6 +6,7 @@ import ProductManager from './models/ProductManager.js';
 import productRouter from './routes/product.js';
 import cartsRouter from './routes/carts.js';
 import path from 'path';
+//import mongoose from 'mongoose';
 
 const app = express();
 const httpServer = app.listen(8080, () => console.log("Escuchando el puerto 8080"));
@@ -49,6 +50,13 @@ io.on('connection', (socket) => {
         console.log('usuario desconectado');
     });
 });
+
+/* try{
+    await mongoose.connect('mongodb+srv://nicocmoh:89EBno2iFNT4W9YW@cluster47300nm.ik8zzdc.mongodb.net/?retryWrites=true&w=majority');
+    console.log('conectado a BBD')
+} catch(error){
+    console.log(error.message)
+}; */
 
 export default app;
 export { io };

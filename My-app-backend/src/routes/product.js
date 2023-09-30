@@ -72,7 +72,7 @@ productRouter.post('/', async (req, res) => {
         if (!title || !description || !price || !thumbnail || !code || !stock) {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' })
         }
-        const idNuevo = await productManager.addProducts(title, description, price, thumbnail, code, stock);
+        const idNuevo = await productManager.addProducts(title, description, price, code, thumbnail, stock);
 
         const updatedProducts = await productManager.getProducts();
 

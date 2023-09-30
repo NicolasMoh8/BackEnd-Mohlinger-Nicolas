@@ -29,14 +29,14 @@
 
         const socket = io();
 
-        socket.on('deleteProduct', function (products) {
+        socket.on('createProduct', function (products) {
             const productForm = document.getElementById('product-list');
             productForm.innerHTML = '';
 
             products.forEach(function (product) {
                 const item = document.createElement('li');
-                items.classList.add('product-item')
-                items.innerHTML = `
+                item.classList.add('product-item')
+                item.innerHTML = `
                     <h3>${product.title}</h3>
                     <h4>${product.description}</h4>
                     <img class="product-image" src="${product.thumbnail}">
@@ -47,7 +47,7 @@
             });
         });
         socket.on('deleteProduct', function (products) {
-            const productForm = document.getElementById('product-form');
+            const productForm = document.getElementById('product-list');
             productForm.innerHTML = '';
 
             products.forEach(function (product) {
