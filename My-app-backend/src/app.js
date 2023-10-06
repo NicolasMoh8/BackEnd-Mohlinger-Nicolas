@@ -2,11 +2,13 @@ import express from 'express';
 import __dirname from './utils.js';
 import { engine } from 'express-handlebars';
 import { Server } from 'socket.io';
-import ProductManager from './models/ProductManager.js';
+import ProductManager from './DAO/fileManager/ProductManager.js';
 import productRouter from './routes/product.js';
 import cartsRouter from './routes/carts.js';
+import chatRouter from './routes/chat.js';
 import path from 'path';
-//import mongoose from 'mongoose';
+import mongoose from 'mongoose';
+import { messageModel } from './DAO/models/messageModel.js';
 
 const app = express();
 const httpServer = app.listen(8080, () => console.log("Escuchando el puerto 8080"));
@@ -23,7 +25,11 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/', productRouter);
 app.use('/api/carts', cartsRouter);
+app.use('/chat', chatRouter);
 
+
+
+let messages = [];
 
 io.on('connection', (socket) => {
     console.log('usuario conectado');
@@ -46,17 +52,43 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('authenticate', async () => {
+        try {
+            const messageLogs = await messageModel.find().sort({ timestamp: 1 });
+            io.emit('messageLogs', messageLogs);
+        } catch (error) {
+            console.error('Error al recuperar registros de mensajes:', error);
+        }
+    });
+
+    socket.on('message', async (data) => {
+        try {
+            const newMessage = new messageModel({
+                user: data.user,
+                message: data.message,
+                timestamp: new Date(),
+            });
+
+            await newMessage.save();
+
+            io.emit('messageLogs', [newMessage]);
+        } catch (error) {
+            console.error('Error al guardar el mensaje:', error);
+        }
+    });
+
+
     socket.on('disconnect', () => {
         console.log('usuario desconectado');
     });
 });
 
-/* try{
-    await mongoose.connect('mongodb+srv://nicocmoh:89EBno2iFNT4W9YW@cluster47300nm.ik8zzdc.mongodb.net/?retryWrites=true&w=majority');
+try{
+    await mongoose.connect('mongodb+srv://nicocmoh:89EBno2iFNT4W9YW@cluster47300nm.ik8zzdc.mongodb.net/ecommerce?retryWrites=true&w=majority');
     console.log('conectado a BBD')
 } catch(error){
     console.log(error.message)
-}; */
+};
 
 export default app;
 export { io };
