@@ -18,10 +18,10 @@ const productSchema = new mongoose.Schema({
         required: true,
         min:0,
     },
-   /*  code:{
+    code:{
         type: String,
-        required: true,
-    }, */
+        required: false,
+    }, 
     stock:{
         type: Number,
         required: true,
