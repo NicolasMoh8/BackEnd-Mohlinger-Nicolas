@@ -3,14 +3,11 @@ import mongoose from 'mongoose';
 const productCollection = 'products';
 
 const productSchema = new mongoose.Schema({
-    _id:{
-        type: Number,
-        unique: true,
-        required: true,
-    },
+    _id: Number,
     title:{
         type: String,
         required: true,
+        index: true,
     },
     description:{
         type: String,
@@ -21,27 +18,27 @@ const productSchema = new mongoose.Schema({
         required: true,
         min:0,
     },
-    code:{
+   /*  code:{
         type: String,
         required: true,
-    },
+    }, */
     stock:{
         type: Number,
         required: true,
         min:0,
     },
-    category:{
+    /* category:{
         type: String,
         required: true,
-    },
+    }, */
     thumbnail:{
         type: String,
         required: true,
     },
-    status:{
+    /* status:{
         type: Boolean,
         required: true,
-    },
+    }, */
 });
 
 export const productModel = mongoose.model(productCollection, productSchema);

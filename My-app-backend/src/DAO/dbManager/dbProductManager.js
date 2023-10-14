@@ -1,4 +1,4 @@
-import { productModel } from '../models/productsModel';
+import { productModel } from '../models/productsModel.js';
 
 export default class ProductManager {
     constructor() {
@@ -72,6 +72,15 @@ export default class ProductManager {
             return product;
         } catch (error) {
             throw new Error('Error al eliminar el producto');
+        }
+    }
+
+    async getProducts() {
+        try {
+            const products = await productModel.find();
+            return products;
+        } catch (error) {
+            throw new Error('Error al obtener los productos');
         }
     }
 };

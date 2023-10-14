@@ -1,19 +1,10 @@
 import express from 'express';
-import ProductManager from '../DAO/fileManager/ProductManager.js';
+import ProductManager from '../DAO/dbManager/dbProductManager.js';
 import { io } from '../app.js';
 
 
 const productRouter = express.Router();
 const productManager = new ProductManager('src/data/products.json');
-
-productRouter.get('/', async (req, res) => {
-    try {
-        const products = await productManager.getProducts();
-        res.render('home', { products });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener productos' })
-    }
-});
 
 productRouter.get('/home', async (req, res) => {
     try {
@@ -72,13 +63,21 @@ productRouter.post('/', async (req, res) => {
         if (!title || !description || !price || !thumbnail || !code || !stock) {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' })
         }
-        const idNuevo = await productManager.addProducts(title, description, price, code, thumbnail, stock);
+        //const idNuevo = await productManager.addProducts(title, description, price, code, thumbnail, stock);
+        const newProductData = {
+            title,
+            description,
+            price,
+            code,
+            stock,
+            thumbnail,
+        };
+        const newProduct = await productManager.addProduct(newProductData);
+        //const updatedProducts = await productManager.getProducts();
 
-        const updatedProducts = await productManager.getProducts();
+        io.emit('createProduct', newProduct);
 
-        io.emit('createProduct', updatedProducts);
-
-        res.status(201).json({ message: 'Producto creado', productId: idNuevo });
+        res.status(201).json({ message: 'Producto creado', productId: newProduct._id });
 
     } catch (error) {
         res.status(500).json({ error: 'Error al crear el producto' });
@@ -88,11 +87,11 @@ productRouter.post('/', async (req, res) => {
 
 productRouter.put('/:pid', async (req, res) => {
     const id = parseInt(req.params.pid);
-    const updated = req.body;
+    const updatedData = req.body;
 
     try {
-        await productManager.updateProduct(id, updated);
-        //io.emit('updated', updated);
+        const updatedProduct = await productManager.updateProduct(id, updatedData);
+        io.emit('updateProduct', updatedProduct);
         res.json({ message: 'Producto actualizado' });
     } catch (error) {
         res.status(500).json({ error: 'Error al actualizar el producto' });
@@ -104,11 +103,9 @@ productRouter.delete('/:id', async (req, res) => {
     const productId = parseInt(req.params.id);
 
     try {
-        await productManager.deleteProduct(productId);
-
-        const updatedProducts = await productManager.getProducts();
-
-        io.emit('deleteProduct', updatedProducts);
+        const deletedProduct =await productManager.deleteProduct(productId);
+        
+        io.emit('deleteProduct', deletedProduct);
 
         res.json({ message: 'Producto eliminado' });
     } catch (error) {

@@ -2,13 +2,15 @@ import express from 'express';
 import __dirname from './utils.js';
 import { engine } from 'express-handlebars';
 import { Server } from 'socket.io';
-import ProductManager from './DAO/fileManager/ProductManager.js';
+import ProductManager from './DAO/dbManager/dbProductManager.js';
 import productRouter from './routes/product.js';
 import cartsRouter from './routes/carts.js';
 import chatRouter from './routes/chat.js';
 import path from 'path';
 import mongoose from 'mongoose';
 import { messageModel } from './DAO/models/messageModel.js';
+import { productModel } from './DAO/models/productsModel.js';
+import productInfo from './data/products.json' assert {type: 'json'};
 
 const app = express();
 const httpServer = app.listen(8080, () => console.log("Escuchando el puerto 8080"));
@@ -23,7 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/', productRouter);
+app.use('/api/products', productRouter);
 app.use('/api/carts', cartsRouter);
 app.use('/chat', chatRouter);
 
@@ -83,12 +85,25 @@ io.on('connection', (socket) => {
     });
 });
 
-try{
+/* try {
     await mongoose.connect('mongodb+srv://nicocmoh:89EBno2iFNT4W9YW@cluster47300nm.ik8zzdc.mongodb.net/ecommerce?retryWrites=true&w=majority');
     console.log('conectado a BBD')
-} catch(error){
+} catch (error) {
     console.log(error.message)
-};
+}; */
+
+const enviroment = async () => {
+    try {
+        await mongoose.connect('mongodb+srv://nicocmoh:89EBno2iFNT4W9YW@cluster47300nm.ik8zzdc.mongodb.net/ecommerce?retryWrites=true&w=majority');
+        console.log('conectado a BBD')
+        const responseInsert = await productModel.insertMany(productInfo);
+        console.log(responseInsert);
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+enviroment();
 
 export default app;
 export { io };
