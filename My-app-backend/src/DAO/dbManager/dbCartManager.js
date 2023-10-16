@@ -1,4 +1,6 @@
-import { cartModel } from '../models/cartModel.js';
+import {cartModel} from '../models/cartsModel.js';
+import { productModel } from '../models/productsModel.js';
+
 
 export default class CartManager {
     constructor() {
@@ -14,8 +16,8 @@ export default class CartManager {
             });
 
             await newCart.save();
-
             return newCart;
+
         } catch (error) {
             throw new Error('Error al crear el carrito en la base de datos');
         }
@@ -27,6 +29,10 @@ export default class CartManager {
 
             if (!cart) {
                 throw new Error('Carrito no encontrado en la base de datos');
+            }
+            const product = await productModel.findById(productId);
+            if(!product){
+                throw new Error('Producto no enontrado en la base de datos');
             }
             const productToAdd = {
                 productId: productId,
@@ -59,5 +65,6 @@ export default class CartManager {
         }
     }
 }
+
 
 
