@@ -97,8 +97,8 @@ const enviroment = async () => {
         await mongoose.connect('mongodb+srv://nicocmoh:89EBno2iFNT4W9YW@cluster47300nm.ik8zzdc.mongodb.net/ecommerce?retryWrites=true&w=majority');
         console.log('conectado a BBD')
         //const responseInsert = await productModel.insertMany(productInfo);
-        const responseInsert = await productModel.paginate({},{limit:5, page:1});
-        console.log(JSON.stringify(responseInsert, null,'\t'));
+        //const responseInsert = await productModel.paginate({},{limit:5, page:1});
+        //console.log(JSON.stringify(responseInsert, null,'\t'));
     } catch (error) {
         console.log(error);
     }

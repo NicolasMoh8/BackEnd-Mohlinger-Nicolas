@@ -2,10 +2,10 @@ import { productModel } from '../models/productsModel.js';
 
 export default class ProductManager {
     constructor() {
-        console.log('Trabajando desde BDD');
+        
     }
 
-    async addProduct(title, description, price, code, stock) {
+    async addProduct({title, description, price, code, stock, thumbnail}) {
         try {
             const newProduct = new productModel({
                 title,
@@ -13,6 +13,7 @@ export default class ProductManager {
                 price,
                 code,
                 stock,
+                thumbnail,
             });
 
 
@@ -20,6 +21,7 @@ export default class ProductManager {
 
             return newProduct;
         } catch (error) {
+            console.log(error)
             throw new Error('Error al agregar el producto');
         }
     }
@@ -35,6 +37,7 @@ export default class ProductManager {
 
             return product;
         } catch (error) {
+            console.log(error)
             throw new Error('Error al obtener el producto por ID');
         }
     }
@@ -49,13 +52,11 @@ export default class ProductManager {
                     new: true,
                 }
             );
-
-            if (!product) {
-                throw new Error('Producto no encontrado');
-            }
+            
 
             return product;
         } catch (error) {
+            console.log(error)
             throw new Error('Error al actualizar el producto');
         }
     }
@@ -71,6 +72,7 @@ export default class ProductManager {
 
             return product;
         } catch (error) {
+            console.log(error)
             throw new Error('Error al eliminar el producto');
         }
     }
@@ -80,6 +82,7 @@ export default class ProductManager {
             const products = await productModel.find();
             return products;
         } catch (error) {
+            console.log(error)
             throw new Error('Error al obtener los productos');
         }
     }

@@ -4,7 +4,7 @@ import { productModel } from '../models/productsModel.js';
 
 export default class CartManager {
     constructor() {
-        console.log('Trabajando con carritos desde la base de datos');
+        
     }
 
     async createCart(userId) {
@@ -19,6 +19,7 @@ export default class CartManager {
             return newCart;
 
         } catch (error) {
+            console.log(error)
             throw new Error('Error al crear el carrito en la base de datos');
         }
     }
@@ -46,6 +47,7 @@ export default class CartManager {
 
             return cart;
         } catch (error) {
+            console.log(error)
             throw new Error('Error al agregar producto al carrito en la base de datos');
         }
     }
@@ -61,6 +63,7 @@ export default class CartManager {
 
             return cart;
         } catch (error) {
+            console.log(error)
             throw new Error('Error al obtener el carrito por ID en la base de datos');
         }
     }

@@ -1,7 +1,7 @@
 import express from 'express';
 import ProductManager from '../DAO/dbManager/dbProductManager.js';
 import { io } from '../app.js';
-
+import { productModel } from '../DAO/models/productsModel.js';
 
 const productRouter = express.Router();
 const productManager = new ProductManager('src/data/products.json');
@@ -11,6 +11,7 @@ productRouter.get('/home', async (req, res) => {
         const products = await productManager.getProducts();
         res.render('home', { products });
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: 'Error al obtener productos' });
     }
 });
@@ -20,6 +21,7 @@ productRouter.get('/realTimeProducts', async (req, res) => {
         const products = await productManager.getProducts();
         res.render('realTimeProducts', { products });
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: 'Error al obtener productos' });
     }
 });
@@ -27,17 +29,24 @@ productRouter.get('/realTimeProducts', async (req, res) => {
 productRouter.get('/', async (req, res) => {
 
     try {
-        const limit = parseInt(req.query.limit);
-        const products = await productManager.getProducts();
+        const { page = 1 } = req.query;
+        const { docs, hasPrevPage, hasNextPage, nextPage, prevPage } = await productModel.paginate({}, { limit: 5, page, lean: true });
 
-        if (isNaN(limit)) {
-            res.json(products);
-        } else {
-            res.json(products.slice(0, limit));
-        }
+        const products = docs;
 
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener productos' })
+        res.render('products', {
+            products,
+            hasPrevPage,
+            hasNextPage,
+            nextPage,
+            prevPage
+        })
+        console.log(JSON.stringify(products, null,'\t'));
+    } 
+
+    catch (error) {
+    console.log(error)
+    res.status(500).json({ error: 'Error al obtener productos' })
     }
 });
 
@@ -46,13 +55,14 @@ productRouter.get('/:pid', async (req, res) => {
     try {
         const product = await productManager.getProductById(id);
 
-        if (product) {
-            res.json(product);
-        } else {
-            res.status(404).json({ error: 'Producto no encontrado' });
+        if (!product) {
+            throw new Error('Producto no encontrado');
         }
+
+        res.json(product);
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener el producto por ID' })
+        console.error(error);
+        res.status(404).json({ error: 'Producto no encontrado' })
     }
 });
 
@@ -80,35 +90,38 @@ productRouter.post('/', async (req, res) => {
         res.status(201).json({ message: 'Producto creado', productId: newProduct._id });
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: 'Error al crear el producto' });
     }
 });
 
 
 productRouter.put('/:pid', async (req, res) => {
-    const id = parseInt(req.params.pid);
+    const id = req.params.pid;
     const updatedData = req.body;
 
     try {
         const updatedProduct = await productManager.updateProduct(id, updatedData);
         io.emit('updateProduct', updatedProduct);
-        res.json({ message: 'Producto actualizado' });
+        res.status(201).json({ message: 'Producto actualizado' });
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: 'Error al actualizar el producto' });
     }
 });
 
 
 productRouter.delete('/:id', async (req, res) => {
-    const productId = parseInt(req.params.id);
+    const productId = req.params.id;
 
     try {
-        const deletedProduct =await productManager.deleteProduct(productId);
-        
+        const deletedProduct = await productManager.deleteProduct(productId);
+
         io.emit('deleteProduct', deletedProduct);
 
-        res.json({ message: 'Producto eliminado' });
+        res.status(201).json({ message: 'Producto eliminado' });
     } catch (error) {
+        console.log(error)
         res.status(500).json({ error: 'Error al eliminar el producto' });
     }
 });
